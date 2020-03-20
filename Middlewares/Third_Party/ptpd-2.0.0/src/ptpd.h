@@ -30,8 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stm32f4xx.h>
-#include <stm32f4x7_eth.h>
+#include <stm32f7xx.h>
+#include "stm32f7xx_hal_eth.h" //#include <stm32f7x7_eth.h>
 #include <limits.h>
 #include "main.h"
 #include "cmsis_os.h"

@@ -338,7 +338,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F769xx,USE_STM32F769I_DISCO</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Inc;..\Src;..\..\Drivers\CMSIS\Device\ST\STM32F7xx\Include;..\..\Drivers\STM32F7xx_HAL_Driver\Inc;..\..\Drivers\BSP\STM32F769I-Discovery;..\..\Drivers\BSP\Components\Common;..\..\Drivers\BSP\Components;..\..\Middlewares\Third_Party\LwIP\src\include;..\..\Middlewares\Third_Party\LwIP\system;..\..\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\Third_Party\FreeRTOS\Source\include;..\..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS;..\..\Utilities;..\..\Utilities\Log</IncludePath>
+              <IncludePath>..\Inc;..\Src;..\..\Drivers\CMSIS\Device\ST\STM32F7xx\Include;..\..\Drivers\STM32F7xx_HAL_Driver\Inc;..\..\Drivers\BSP\STM32F769I-Discovery;..\..\Drivers\BSP\Components\Common;..\..\Drivers\BSP\Components;..\..\Middlewares\Third_Party\LwIP\src\include;..\..\Middlewares\Third_Party\LwIP\system;..\..\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\Third_Party\FreeRTOS\Source\include;..\..\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS;..\..\Utilities;..\..\Utilities\Log;..\..\Middlewares\Third_Party\ptpd-2.0.0\src;..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -871,6 +871,66 @@
               <FileName>ethernet.c</FileName>
               <FileType>1</FileType>
               <FilePath>../../Middlewares/Third_Party/LwIP/src/netif/ethernet.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Ptpd_app</GroupName>
+          <Files>
+            <File>
+              <FileName>arith.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\arith.c</FilePath>
+            </File>
+            <File>
+              <FileName>bmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\bmc.c</FilePath>
+            </File>
+            <File>
+              <FileName>protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>ptpd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\ptpd.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Ptpd_platformDependent</GroupName>
+          <Files>
+            <File>
+              <FileName>msg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\msg.c</FilePath>
+            </File>
+            <File>
+              <FileName>net.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\net.c</FilePath>
+            </File>
+            <File>
+              <FileName>servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\servo.c</FilePath>
+            </File>
+            <File>
+              <FileName>startup.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\startup.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys_time.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\sys_time.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\timer.c</FilePath>
             </File>
           </Files>
         </Group>
