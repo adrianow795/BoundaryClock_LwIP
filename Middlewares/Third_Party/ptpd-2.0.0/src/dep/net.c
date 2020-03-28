@@ -84,14 +84,23 @@ static bool netQCheck(BufQueue  *queue)
 /* Shut down  the UDP and network stuff */
 bool netShutdown(NetPath *netPath)
 {
-	struct ip_addr multicastAaddr;
-
+    
+/*********************************************
+*$#>Modifications in comments *
+**********************************************/
+	//struct ip_addr multicastAaddr;
+    ip_addr_t multicastAaddr;
+    
 	DBG("netShutdown\n");
 
 	/* leave multicast group */
 	multicastAaddr.addr = netPath->multicastAddr;
-	igmp_leavegroup(IP_ADDR_ANY, &multicastAaddr);
-
+	//igmp_leavegroup(IP_ADDR_ANY, &multicastAaddr);
+/*********************************************
+*$#> <end>
+**********************************************/
+    
+    
 	/* Disconnect and close the Event UDP interface */
 	if (netPath->eventPcb)
 	{
@@ -127,11 +136,14 @@ static int32_t findIface(const octet_t *ifaceName, octet_t *uuid, NetPath *netPa
 
 	return iface->ip_addr.addr;
 }
-
+/*********************************************
+*$#>Modifications in comments *
+**********************************************/
 /* Process an incoming message on the Event port. */
 static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-																 struct ip_addr *addr, u16_t port)
-{
+																 ip_addr_t *addr, u16_t port)
+                                                                //--struct ip_addr *addr, u16_t port)
+{   
 	NetPath *netPath = (NetPath *) arg;
 
 	/* Place the incoming message on the Event Port QUEUE. */
@@ -146,9 +158,13 @@ static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 	ptpd_alert();
 }
 
+	
+    
 /* Process an incoming message on the General port. */
 static void netRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-																	 struct ip_addr *addr, u16_t port)
+																	 ip_addr_t *addr, u16_t port)
+                                                                         //--struct ip_addr *addr, u16_t port)
+
 {
 	NetPath *netPath = (NetPath *) arg;
 
@@ -168,9 +184,14 @@ static void netRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *
 bool netInit(NetPath *netPath, PtpClock *ptpClock)
 {
 	struct in_addr netAddr;
-	struct ip_addr interfaceAddr;
+	//--struct ip_addr interfaceAddr;
+    ip_addr_t interfaceAddr;
 	char addrStr[NET_ADDRESS_LENGTH];
-
+    
+/*********************************************
+*$#> <end>
+**********************************************/
+    
 	DBG("netInit\n");
 
 	/* Initialize the buffer queues. */
@@ -212,9 +233,11 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 			goto fail04;
 	}
 	netPath->multicastAddr = netAddr.s_addr;
-
+/*********************************************
+*$#>Modifications in comments *
+**********************************************/
 	/* Join multicast group (for receiving) on specified interface */
-	igmp_joingroup(&interfaceAddr, (struct ip_addr *)&netAddr);
+	//--igmp_joingroup(&interfaceAddr, (struct ip_addr *)&netAddr);
 
 	/* Init Peer multicast IP address */
 	memcpy(addrStr, PEER_PTP_DOMAIN_ADDRESS, NET_ADDRESS_LENGTH);
@@ -226,19 +249,19 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 	netPath->peerMulticastAddr = netAddr.s_addr;
 
 	/* Join peer multicast group (for receiving) on specified interface */
-	igmp_joingroup(&interfaceAddr, (struct ip_addr *) &netAddr);
+	//--igmp_joingroup(&interfaceAddr, (struct ip_addr *) &netAddr);
 
 	/* Multicast send only on specified interface. */
-	netPath->eventPcb->multicast_ip.addr = netPath->multicastAddr;
-	netPath->generalPcb->multicast_ip.addr = netPath->multicastAddr;
+	//--netPath->eventPcb->multicast_ip.addr = netPath->multicastAddr;
+	//--netPath->generalPcb->multicast_ip.addr = netPath->multicastAddr;
 
 	/* Establish the appropriate UDP bindings/connections for events. */
-	udp_recv(netPath->eventPcb, netRecvEventCallback, netPath);
+	//--udp_recv(netPath->eventPcb, netRecvEventCallback, netPath);
 	udp_bind(netPath->eventPcb, IP_ADDR_ANY, PTP_EVENT_PORT);
 	/*  udp_connect(netPath->eventPcb, &netAddr, PTP_EVENT_PORT); */
 
 	/* Establish the appropriate UDP bindings/connections for general. */
-	udp_recv(netPath->generalPcb, netRecvGeneralCallback, netPath);
+	//--udp_recv(netPath->generalPcb, netRecvGeneralCallback, netPath);
 	udp_bind(netPath->generalPcb, IP_ADDR_ANY, PTP_GENERAL_PORT);
 	/*  udp_connect(netPath->generalPcb, &netAddr, PTP_GENERAL_PORT); */
 
@@ -253,6 +276,9 @@ fail02:
 fail01:
 	return FALSE;
 }
+/*********************************************
+*$#> <end>
+**********************************************/
 
 /* Wait for a packet  to come in on either port.  For now, there is no wait.
  * Simply check to  see if a packet is available on either port and return 1,

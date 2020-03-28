@@ -42,7 +42,17 @@
 #include "lwip/udp.h"
 #include "lwip/igmp.h"
 #include "lwip/arch.h"
-#include "lwip/timers.h"
+
+/*********************************************
+*$#>Added compilation purpose *
+**********************************************/
+
+//#include "lwip/timers.h"
+#include "lwip/timeouts.h"
+
+/*********************************************
+*$#> <end>
+**********************************************/
 #include "ethernetif.h"
 
 #include "constants.h"

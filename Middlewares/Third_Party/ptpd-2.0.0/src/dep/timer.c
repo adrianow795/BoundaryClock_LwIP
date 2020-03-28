@@ -3,10 +3,9 @@
 #include "../ptpd.h"
 
 /* An array to hold the various system timer handles. */
-static sys_timer_t ptpdTimers[TIMER_ARRAY_SIZE];
 static bool ptpdTimersExpired[TIMER_ARRAY_SIZE];
  
-static void timerCallback(void const *arg)
+static void timerCallback(void *arg)
 {
 	int index = (int) arg;
 
@@ -32,7 +31,7 @@ void initTimer(void)
   {
 		// Mark the timer as not expired.
 		// Initialize the timer.
-		sys_timer_new(&ptpdTimers[i], timerCallback, osTimerOnce, (void *) i);
+		// sys_timer_new(&ptpdTimers[i], timerCallback, osTimerOnce, (void *) i);
 		ptpdTimersExpired[i] = FALSE;
 	}
 }
@@ -41,10 +40,11 @@ void timerStop(int32_t index)
 {
 	/* Sanity check the index. */
 	if (index >= TIMER_ARRAY_SIZE) return;
-
+    
 	// Cancel the timer and reset the expired flag.
 	DBGV("timerStop: stop timer %d\n", index);
-  sys_timer_stop(&ptpdTimers[index]);
+  //sys_timer_stop(&ptpdTimers[index]);
+    sys_untimeout(timerCallback, (void *) index);
 	ptpdTimersExpired[index] = FALSE;
 }
 
@@ -56,7 +56,11 @@ void timerStart(int32_t index, uint32_t interval_ms)
 	// Set the timer duration and start the timer.
 	DBGV("timerStart: set timer %d to %d\n", index, interval_ms);
 	ptpdTimersExpired[index] = FALSE;
-  sys_timer_start(&ptpdTimers[index], interval_ms);
+    //delete previous timer from timeouts list
+    sys_untimeout(timerCallback, (void *) index);
+    // create and start new timer
+    sys_timeout(interval_ms, timerCallback, (void *) index);
+  //sys_timer_start(&ptpdTimers[index], interval_ms);
 }
 
 bool timerExpired(int32_t index)

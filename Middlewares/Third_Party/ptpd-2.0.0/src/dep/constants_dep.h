@@ -15,7 +15,17 @@
 /* platform dependent */
 
 #define IF_NAMESIZE             2
-#define INET_ADDRSTRLEN         16
+
+/*********************************************
+*$#>Deleted for compilation purpose *
+**********************************************/
+
+
+//#define INET_ADDRSTRLEN         16
+
+/*********************************************
+*$#> <end>
+**********************************************/
 
 #ifndef TRUE
 #define TRUE true
