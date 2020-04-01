@@ -19,7 +19,7 @@ struct ptptime_t {
   int32_t tv_nsec;
 };
 
-
+#if LWIP_PTP
 inline void ETH_PTPTime_SetTime(struct ptptime_t * timestamp) 
 {
     (void)timestamp;
@@ -76,5 +76,6 @@ inline void ETH_PTPTime_AdjFreq(int32_t Adj)
 /*********************************************
 *$#> <end>
 **********************************************/
+#endif /* LWIP_PTP */
 
 #endif

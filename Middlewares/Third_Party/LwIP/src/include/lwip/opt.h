@@ -977,6 +977,11 @@
 #if !defined LWIP_IGMP || defined __DOXYGEN__
 #define LWIP_IGMP                       1
 #endif
+
+/* ---------- PTP options ---------- */
+#define LWIP_PTP                        1
+
+
 #if !LWIP_IPV4
 #undef LWIP_IGMP
 #define LWIP_IGMP                       0
