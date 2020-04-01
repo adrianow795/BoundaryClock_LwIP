@@ -20,22 +20,10 @@ struct ptptime_t {
 };
 
 #if LWIP_PTP
-inline void ETH_PTPTime_SetTime(struct ptptime_t * timestamp) 
-{
-    (void)timestamp;
-}
-inline void ETH_PTPTime_GetTime(struct ptptime_t * timestamp)
-{
-    (void)timestamp;
-}
-inline void ETH_PTPTime_UpdateOffset(struct ptptime_t * timeoffset)
-{
-    (void)timeoffset;
-}
-inline void ETH_PTPTime_AdjFreq(int32_t Adj)
-{
-    (void)Adj;
-}
+void ETH_PTPTime_SetTime(struct ptptime_t * timestamp);
+void ETH_PTPTime_GetTime(struct ptptime_t * timestamp);
+void ETH_PTPTime_UpdateOffset(struct ptptime_t * timeoffset);
+void ETH_PTPTime_AdjFreq(int32_t Adj);
 
 /* Examples of subsecond increment and addend values using SysClk = 144 MHz
  
