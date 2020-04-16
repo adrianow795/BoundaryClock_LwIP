@@ -824,7 +824,7 @@ static void handleFollowUp(PtpClock *ptpClock, bool isFromSelf)
 			addTime(&correctionField, &correctionField, &ptpClock->correctionField_sync);
 			updateOffset(ptpClock, &ptpClock->timestamp_syncRecieve, &preciseOriginTimestamp, &correctionField);
 			updateClock(ptpClock);
-
+            
 			issueDelayReqTimerExpired(ptpClock);
 			break;
 

@@ -315,6 +315,7 @@ static void low_level_init(struct netif *netif)
   */
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
+  HAL_StatusTypeDef retVal = HAL_ERROR;
   err_t errval;
   struct pbuf *q;
   uint8_t *buffer = (uint8_t *)(EthHandle.TxDesc->Buffer1Addr);
@@ -372,7 +373,12 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   }
  
   /* Prepare transmit descriptors to give to DMA */ 
-  HAL_ETH_TransmitFrame(&EthHandle, framelength);
+  retVal = HAL_ETH_TransmitFrame(&EthHandle, framelength);
+  if(retVal != HAL_ERROR)
+  {
+      p->time_sec = EthHandle.TxDesc->TimeStampHigh;
+      p->time_nsec = ETH_PTPNanoSecond2SubSecond(EthHandle.TxDesc->TimeStampLow);
+  }
   
   errval = ERR_OK;
   
@@ -427,6 +433,11 @@ static struct pbuf * low_level_input(struct netif *netif)
   {
     dmarxdesc = EthHandle.RxFrameInfos.FSRxDesc;
     bufferoffset = 0;
+      
+    #if LWIP_PTP
+      p->time_sec = dmarxdesc->TimeStampHigh;
+      p->time_nsec = ETH_PTPSubSecond2NanoSecond(dmarxdesc->TimeStampLow);
+    #endif
     
     for(q = p; q != NULL; q = q->next)
     {

@@ -50,6 +50,7 @@
 #include "app_ethernet.h"
 #include "ethernetif.h"
 #include "lcd_log.h"
+#include "ptpd.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -89,6 +90,8 @@ void User_notification(struct netif *netif)
     LCD_UsrLog ("The network cable is not connected \n");
   } 
 }
+
+uint16_t debug_status_main = LWIP_DBG_OFF;
 
 #ifdef USE_DHCP
 /**
@@ -150,6 +153,8 @@ void DHCP_thread(void const * argument)
             sprintf((char *)iptxt, "%s", ip4addr_ntoa((const ip4_addr_t *)&netif->ip_addr));
             LCD_UsrLog ("DHCP Timeout !! \n");
             LCD_UsrLog ("Static IP address: %s\n", iptxt);  
+            ptpd_init();
+            debug_status_main = LWIP_DBG_OFF;
           }
         }
       }

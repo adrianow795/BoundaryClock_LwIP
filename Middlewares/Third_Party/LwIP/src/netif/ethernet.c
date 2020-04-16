@@ -77,6 +77,8 @@ const struct eth_addr ethzero = {{0,0,0,0,0,0}};
  * @see ETHARP_SUPPORT_VLAN
  * @see LWIP_HOOK_VLAN_CHECK
  */
+
+extern uint16_t debug_status_main;
 err_t
 ethernet_input(struct pbuf *p, struct netif *netif)
 {
@@ -96,7 +98,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
 
   /* points to packet payload, which starts with an Ethernet header */
   ethhdr = (struct eth_hdr *)p->payload;
-  LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE,
+  LWIP_DEBUGF(debug_status_main | LWIP_DBG_TRACE,
     ("ethernet_input: dest:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", src:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", type:%"X16_F"\n",
      (unsigned)ethhdr->dest.addr[0], (unsigned)ethhdr->dest.addr[1], (unsigned)ethhdr->dest.addr[2],
      (unsigned)ethhdr->dest.addr[3], (unsigned)ethhdr->dest.addr[4], (unsigned)ethhdr->dest.addr[5],

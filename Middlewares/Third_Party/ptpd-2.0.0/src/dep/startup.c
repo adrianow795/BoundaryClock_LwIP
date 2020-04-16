@@ -13,7 +13,7 @@ int16_t ptpdStartup(PtpClock * ptpClock, RunTimeOpts *rtOpts, ForeignMasterRecor
 	ptpClock->foreignMasterDS.records = foreign;
 
 	/* 9.2.2 */
-	if (rtOpts->slaveOnly) rtOpts->clockQuality.clockClass = DEFAULT_CLOCK_CLASS_SLAVE_ONLY;
+	if (rtOpts->slaveOnly) rtOpts->clockQuality.clockClass = DEFAULT_CLOCK_CLASS; //-- DEFAULT_CLOCK_CLASS_SLAVE_ONLY;
 
 	/* No negative or zero attenuation */
 	if (rtOpts->servo.ap < 1) rtOpts->servo.ap = 1;

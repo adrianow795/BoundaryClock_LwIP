@@ -935,6 +935,8 @@ HAL_StatusTypeDef HAL_ETH_TransmitFrame(ETH_HandleTypeDef *heth, uint32_t FrameL
   }
   if (bufcount == 1)
   {
+    
+    heth->TxDesc->Status |=ETH_DMATXDESC_TTSE;
     /* Set LAST and FIRST segment */
     heth->TxDesc->Status |=ETH_DMATXDESC_FS|ETH_DMATXDESC_LS;
     /* Set frame size */
@@ -984,11 +986,23 @@ HAL_StatusTypeDef HAL_ETH_TransmitFrame(ETH_HandleTypeDef *heth, uint32_t FrameL
     (heth->Instance)->DMATPDR = 0;
   }
   
+  /*uint32_t timeout = 0;
+  do
+  {
+      timeout++;
+  } while ( !(heth->TxDesc->Status & ETH_DMATXDESC_TTSS) && (timeout < PHY_READ_TO));
+  
+  if(timeout < PHY_READ_TO)
+  {
+      // insert here retriveing information about timestamps... 
+  } */
+  
   /* Set ETH HAL State to Ready */
   heth->State = HAL_ETH_STATE_READY;
   
   /* Process Unlocked */
   __HAL_UNLOCK(heth);
+  
   
   /* Return function status */
   return HAL_OK;
@@ -1198,7 +1212,7 @@ void HAL_ETH_IRQHandler(ETH_HandleTypeDef *heth)
     /* Transfer complete callback */
     HAL_ETH_TxCpltCallback(heth);
 #endif /* USE_HAL_ETH_REGISTER_CALLBACKS */
-    
+      
     /* Clear the Eth DMA Tx IT pending bits */
     __HAL_ETH_DMA_CLEAR_IT(heth, ETH_DMA_IT_T);
 
@@ -1875,7 +1889,7 @@ static void ETH_MACDMAConfig(ETH_HandleTypeDef *heth, uint32_t err)
   macinit.BroadcastFramesReception = ETH_BROADCASTFRAMESRECEPTION_ENABLE;
   macinit.DestinationAddrFilter = ETH_DESTINATIONADDRFILTER_NORMAL;
   macinit.PromiscuousMode = ETH_PROMISCUOUS_MODE_DISABLE;
-  macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_PERFECT;
+  macinit.MulticastFramesFilter = ETH_MULTICASTFRAMESFILTER_NONE;
   macinit.UnicastFramesFilter = ETH_UNICASTFRAMESFILTER_PERFECT;
   macinit.HashTableHigh = 0x0;
   macinit.HashTableLow = 0x0;
@@ -2010,7 +2024,7 @@ static void ETH_MACDMAConfig(ETH_HandleTypeDef *heth, uint32_t err)
     dmainit.ForwardErrorFrames = ETH_FORWARDERRORFRAMES_DISABLE;
     dmainit.ForwardUndersizedGoodFrames = ETH_FORWARDUNDERSIZEDGOODFRAMES_DISABLE;
     dmainit.ReceiveThresholdControl = ETH_RECEIVEDTHRESHOLDCONTROL_64BYTES;
-    dmainit.SecondFrameOperate = ETH_SECONDFRAMEOPERARTE_ENABLE;
+    dmainit.SecondFrameOperate = ETH_SECONDFRAMEOPERARTE_DISABLE; // !!!@@@###
     dmainit.AddressAlignedBeats = ETH_ADDRESSALIGNEDBEATS_ENABLE;
     dmainit.FixedBurst = ETH_FIXEDBURST_ENABLE;
     dmainit.RxDMABurstLength = ETH_RXDMABURSTLENGTH_32BEAT;

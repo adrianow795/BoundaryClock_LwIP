@@ -370,6 +370,9 @@ return_noroute:
  * @return ERR_OK if the packet was processed (could return ERR_* if it wasn't
  *         processed, but currently always returns ERR_OK)
  */
+ 
+ extern uint16_t debug_status_main;
+ 
 err_t
 ip4_input(struct pbuf *p, struct netif *inp)
 {
@@ -489,7 +492,7 @@ ip4_input(struct pbuf *p, struct netif *inp)
     int first = 1;
     netif = inp;
     do {
-      LWIP_DEBUGF(IP_DEBUG, ("ip_input: iphdr->dest 0x%"X32_F" netif->ip_addr 0x%"X32_F" (0x%"X32_F", 0x%"X32_F", 0x%"X32_F")\n",
+      LWIP_DEBUGF(LWIP_DBG_ON, ("ip_input: iphdr->dest 0x%"X32_F" netif->ip_addr 0x%"X32_F" (0x%"X32_F", 0x%"X32_F", 0x%"X32_F")\n",
           ip4_addr_get_u32(&iphdr->dest), ip4_addr_get_u32(netif_ip4_addr(netif)),
           ip4_addr_get_u32(&iphdr->dest) & ip4_addr_get_u32(netif_ip4_netmask(netif)),
           ip4_addr_get_u32(netif_ip4_addr(netif)) & ip4_addr_get_u32(netif_ip4_netmask(netif)),
@@ -542,6 +545,44 @@ ip4_input(struct pbuf *p, struct netif *inp)
     } while (netif != NULL);
   }
 
+/// -----------------------------------------------------------------------------------
+#if LWIP_PTP    
+  if (ip4_addr_ismulticast(ip4_current_dest_addr()))
+  {
+      
+      
+    /* start trying with inp. if that's not acceptable, start walking the
+       list of configured netifs.
+       'first' is used as a boolean to mark whether we started walking the list */
+
+    netif = netif_list;
+    do {
+      LWIP_DEBUGF(debug_status_main , ("ip_input: iphdr->dest 0x%"X32_F" netif->ip_addr 0x%"X32_F" (0x%"X32_F", 0x%"X32_F", 0x%"X32_F")\n",
+          ip4_addr_get_u32(&iphdr->dest), ip4_addr_get_u32(netif_ip4_addr(netif)),
+          ip4_addr_get_u32(&iphdr->dest) & ip4_addr_get_u32(netif_ip4_netmask(netif)),
+          ip4_addr_get_u32(netif_ip4_addr(netif)) & ip4_addr_get_u32(netif_ip4_netmask(netif)),
+          ip4_addr_get_u32(&iphdr->dest) & ~ip4_addr_get_u32(netif_ip4_netmask(netif))));
+
+      /* interface is up and configured? */
+      if ((netif_is_up(netif)) && (!ip4_addr_isany_val(*netif_ip4_addr(netif)))) {
+          if( (ip4_current_src_addr()->addr  &  netif_ip4_netmask(netif)->addr ) == 
+              (netif_ip4_addr(netif)->addr   &  netif_ip4_netmask(netif)->addr )) {
+              LWIP_DEBUGF(debug_status_main, ("ip4_input: packet accepted on interface %c%c\n",
+                  netif->name[0], netif->name[1]));
+              /* break out of for loop */
+              break; 
+          }
+      }
+      netif = netif->next;
+      
+
+    } while (netif != NULL);
+  }
+  
+///------------------------------------------------------------------------------------
+#endif /* LWIP_PTP */ 
+  
+  
 #if IP_ACCEPT_LINK_LAYER_ADDRESSING
   /* Pass DHCP messages regardless of destination address. DHCP traffic is addressed
    * using link layer addressing (such as Ethernet MAC) so we must not filter on IP.

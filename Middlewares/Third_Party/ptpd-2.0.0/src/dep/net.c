@@ -95,7 +95,7 @@ bool netShutdown(NetPath *netPath)
 
 	/* leave multicast group */
 	multicastAaddr.addr = netPath->multicastAddr;
-	//igmp_leavegroup(IP_ADDR_ANY, &multicastAaddr);
+	igmp_leavegroup(IP_ADDR_ANY, &multicastAaddr);
 /*********************************************
 *$#> <end>
 **********************************************/
@@ -141,7 +141,7 @@ static int32_t findIface(const octet_t *ifaceName, octet_t *uuid, NetPath *netPa
 **********************************************/
 /* Process an incoming message on the Event port. */
 static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-																 ip_addr_t *addr, u16_t port)
+																 const ip_addr_t *addr, u16_t port)
                                                                 //--struct ip_addr *addr, u16_t port)
 {   
 	NetPath *netPath = (NetPath *) arg;
@@ -162,7 +162,7 @@ static void netRecvEventCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     
 /* Process an incoming message on the General port. */
 static void netRecvGeneralCallback(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-																	 ip_addr_t *addr, u16_t port)
+																	 const ip_addr_t *addr, u16_t port)
                                                                          //--struct ip_addr *addr, u16_t port)
 
 {
@@ -237,7 +237,8 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 *$#>Modifications in comments *
 **********************************************/
 	/* Join multicast group (for receiving) on specified interface */
-	//--igmp_joingroup(&interfaceAddr, (struct ip_addr *)&netAddr);
+	//igmp_joingroup(&interfaceAddr, (struct ip_addr *)&netAddr);
+    igmp_joingroup(&interfaceAddr, (ip_addr_t *)&netAddr);
 
 	/* Init Peer multicast IP address */
 	memcpy(addrStr, PEER_PTP_DOMAIN_ADDRESS, NET_ADDRESS_LENGTH);
@@ -250,18 +251,23 @@ bool netInit(NetPath *netPath, PtpClock *ptpClock)
 
 	/* Join peer multicast group (for receiving) on specified interface */
 	//--igmp_joingroup(&interfaceAddr, (struct ip_addr *) &netAddr);
-
+    igmp_joingroup(&interfaceAddr, (ip_addr_t *) &netAddr);
+    
 	/* Multicast send only on specified interface. */
 	//--netPath->eventPcb->multicast_ip.addr = netPath->multicastAddr;
 	//--netPath->generalPcb->multicast_ip.addr = netPath->multicastAddr;
-
+    netPath->eventPcb->multicast_ip.addr = netPath->multicastAddr;
+    netPath->generalPcb->multicast_ip.addr = netPath->multicastAddr;
+    
 	/* Establish the appropriate UDP bindings/connections for events. */
 	//--udp_recv(netPath->eventPcb, netRecvEventCallback, netPath);
+    udp_recv(netPath->eventPcb, netRecvEventCallback, netPath); 
 	udp_bind(netPath->eventPcb, IP_ADDR_ANY, PTP_EVENT_PORT);
-	/*  udp_connect(netPath->eventPcb, &netAddr, PTP_EVENT_PORT); */
+	/*  udp_connect(netPath->eventPcb, &netAddr, PTP_EVENT_PORT); */  // dokladnie przegladnac !!! 
 
 	/* Establish the appropriate UDP bindings/connections for general. */
 	//--udp_recv(netPath->generalPcb, netRecvGeneralCallback, netPath);
+    udp_recv(netPath->generalPcb, netRecvGeneralCallback, netPath);
 	udp_bind(netPath->generalPcb, IP_ADDR_ANY, PTP_GENERAL_PORT);
 	/*  udp_connect(netPath->generalPcb, &netAddr, PTP_GENERAL_PORT); */
 

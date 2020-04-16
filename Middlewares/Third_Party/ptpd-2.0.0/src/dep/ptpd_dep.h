@@ -11,7 +11,7 @@
 #else
 #define DBGVV(...)
 #endif
-
+#define PTPD_DBGV
 #ifdef PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR

@@ -54,6 +54,7 @@
 #include "app_ethernet.h"
 #include "httpserver-socket.h"
 #include "lcd_log.h"
+#include "ptpd.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -139,6 +140,8 @@ static void StartThread(void const * argument)
   osThreadDef(DHCP, DHCP_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadCreate (osThread(DHCP), &gnetif);
 #endif
+    
+   
 
   for( ;; )
   {
