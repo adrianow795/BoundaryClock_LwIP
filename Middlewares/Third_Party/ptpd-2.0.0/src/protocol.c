@@ -262,7 +262,7 @@ void doState(PtpClock *ptpClock)
 
 				switch (ptpClock->recommendedState)
 				{
-					case PTP_MASTER:
+					case PTP_MASTER:                  
 					case PTP_PASSIVE:
 						if (ptpClock->defaultDS.slaveOnly || ptpClock->defaultDS.clockQuality.clockClass == 255)
 						{
@@ -290,6 +290,24 @@ void doState(PtpClock *ptpClock)
 					if (timerExpired(QUALIFICATION_TIMEOUT)) toState(ptpClock, PTP_MASTER);
 					break;
 				case PTP_MASTER:
+                    if (timerExpired(SYNC_INTERVAL_TIMER)) {
+                        DBGV("event SYNC_INTERVAL_TIMEOUT_EXPIRES\n");
+                        issueSync(ptpClock);
+                    }
+                    
+                    if (timerExpired(ANNOUNCE_INTERVAL_TIMER)) {
+                        DBGV("event ANNOUNCE_INTERVAL_TIMEOUT_EXPIRES\n");
+                        issueAnnounce(ptpClock);
+                    }
+                    
+                    if (ptpClock->portDS.delayMechanism == P2P) {
+                        if (timerExpired(PDELAYREQ_INTERVAL_TIMER)) {
+                            DBGV("event PDELAYREQ_INTERVAL_TIMEOUT_EXPIRES\n");
+                            issuePDelayReq(ptpClock);
+                        }
+                    }
+                    break;
+                    
 					break;
 				default:
 					toState(ptpClock, PTP_PRE_MASTER);

@@ -46,7 +46,7 @@
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 #define PTPD_LSBF
-#elif BYTE_ORDER == BIG_ENDIAN
+#elif BYTE_ORDER == BIG_ENDIANgit 
 #define PTPD_MSBF
 #endif
 

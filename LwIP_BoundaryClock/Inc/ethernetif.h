@@ -56,10 +56,18 @@ void ETH_PTPTime_AdjFreq(int32_t Adj);
  |   50 ns   |   107     | 0x1E953032 |
  |   20 ns   |    43     | 0x4C19EF00 |
  |   14 ns   |    30     | 0x6D141AD6 |
- +-----------+-----------+------------+
+ +-----------+-----------+------------+ 
 */
 
-#define ADJ_FREQ_BASE_ADDEND      0x58C8EC2B
+/*
+HCLK = 200MHz
+Sytem time update logic requires 50MHz to achieve 20ns accuracy
+200MHz/50Mhz = 4
+2^32 / 4 = 0x40000000
+*/
+                                    
+#define ADJ_FREQ_BASE_ADDEND      0x3FECD300 // 0x3FECD300 //0x40000000 
+//0x58C8EC2B
 #define ADJ_FREQ_BASE_INCREMENT   43
 /*********************************************
 *$#> <end>

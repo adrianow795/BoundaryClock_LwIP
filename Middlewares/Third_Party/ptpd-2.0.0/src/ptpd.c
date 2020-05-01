@@ -16,15 +16,15 @@ __IO uint32_t PTPTimer = 0;
 static void ptpd_thread(void *arg)
 {
 	// Initialize run-time options to default values.
-	rtOpts.announceInterval = DEFAULT_ANNOUNCE_INTERVAL;
+	rtOpts.announceInterval = 1;//DEFAULT_ANNOUNCE_INTERVAL;
 	rtOpts.syncInterval = DEFAULT_SYNC_INTERVAL;
-	rtOpts.clockQuality.clockAccuracy = DEFAULT_CLOCK_ACCURACY;
-	rtOpts.clockQuality.clockClass = DEFAULT_CLOCK_CLASS;
+	rtOpts.clockQuality.clockAccuracy = DEFAULT_CLOCK_ACCURACY;//0x21;//DEFAULT_CLOCK_ACCURACY;
+	rtOpts.clockQuality.clockClass = DEFAULT_CLOCK_CLASS; //DEFAULT_CLOCK_CLASS_SLAVE_ONLY; //DEFAULT_CLOCK_CLASS;
 	rtOpts.clockQuality.offsetScaledLogVariance = DEFAULT_CLOCK_VARIANCE; /* 7.6.3.3 */
-	rtOpts.priority1 = DEFAULT_PRIORITY1;
-	rtOpts.priority2 = DEFAULT_PRIORITY2;
+	rtOpts.priority1 = 128;//DEFAULT_PRIORITY1;
+	rtOpts.priority2 = 128;//DEFAULT_PRIORITY2;
 	rtOpts.domainNumber = DEFAULT_DOMAIN_NUMBER;
-	rtOpts.slaveOnly = SLAVE_ONLY;
+	rtOpts.slaveOnly = SLAVE_ONLY;//SLAVE_ONLY;
 	rtOpts.currentUtcOffset = DEFAULT_UTC_OFFSET;
 	rtOpts.servo.noResetClock = DEFAULT_NO_RESET_CLOCK;
 	rtOpts.servo.noAdjust = NO_ADJUST;
@@ -71,7 +71,7 @@ static void ptpd_thread(void *arg)
 		while (netSelect(&ptpClock.netPath, 0) > 0);
 		
 		// Wait up to 100ms for something to do, then do something anyway.
-		sys_arch_mbox_fetch(&ptp_alert_queue, &msg, 100);
+		sys_arch_mbox_fetch(&ptp_alert_queue, &msg, 50);
 	}
 }
 
@@ -91,6 +91,6 @@ void ptpd_init(void)
   }
 
 	// Create the PTP daemon thread.
-	sys_thread_new("PTPD", ptpd_thread, NULL, DEFAULT_THREAD_STACKSIZE * 2, osPriorityAboveNormal);
+	sys_thread_new("PTPD", ptpd_thread, NULL, DEFAULT_THREAD_STACKSIZE * 2,osPriorityRealtime);// osPriorityAboveNormal);
 }
 

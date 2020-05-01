@@ -3,7 +3,7 @@
 void initClock(PtpClock *ptpClock)
 {
 	DBG("initClock\n");
-
+    
 	/* Clear vars */
 	ptpClock->Tms.seconds = ptpClock->Tms.nanoseconds = 0;
 	ptpClock->observedDrift = 0;  /* clears clock servo accumulator (the I term) */
@@ -41,7 +41,7 @@ void initClock(PtpClock *ptpClock)
 
 	/* Level clock */
 	if (!ptpClock->servo.noAdjust)
-		adjFreq(0);
+            adjFreq(0);
 
 	netEmptyEventQ(&ptpClock->netPath);
 }
@@ -187,7 +187,7 @@ void updateOffset(PtpClock *ptpClock, const TimeInternal *syncEventIngressTimest
 		}
 	}
 }
-
+volatile TimeInternal Tsm_temp_, meanPathDelay_temp_,Tms_temp_;
 /* 11.3 */
 void updateDelay(PtpClock * ptpClock, const TimeInternal *delayEventEgressTimestamp,
 								 const TimeInternal *recieveTimestamp, const TimeInternal *correctionField)
@@ -198,6 +198,13 @@ void updateDelay(PtpClock * ptpClock, const TimeInternal *delayEventEgressTimest
 		DBGV("updateDelay: Tms is not valid");
 		return;
 	}
+    
+    Tsm_temp_.seconds = ptpClock->Tsm.nanoseconds;
+    Tsm_temp_.seconds = ptpClock->Tsm.seconds;
+    Tms_temp_.seconds = ptpClock->Tms.nanoseconds;
+    Tms_temp_.seconds = ptpClock->Tms.seconds;
+    meanPathDelay_temp_.seconds = ptpClock->currentDS.meanPathDelay.nanoseconds;
+    meanPathDelay_temp_.seconds = ptpClock->currentDS.meanPathDelay.seconds;
 
 	subTime(&ptpClock->Tsm, recieveTimestamp, delayEventEgressTimestamp);
 	subTime(&ptpClock->Tsm, &ptpClock->Tsm, correctionField);
@@ -270,6 +277,7 @@ void updateClock(PtpClock *ptpClock)
 			{
 				adj = ptpClock->currentDS.offsetFromMaster.nanoseconds > 0 ? ADJ_FREQ_MAX : -ADJ_FREQ_MAX;
 				adjFreq(-adj);
+
 			}
 		}
 	}
@@ -300,6 +308,7 @@ void updateClock(PtpClock *ptpClock)
 		{
 			adj = offsetNorm / ptpClock->servo.ap + ptpClock->observedDrift;
 			adjFreq(-adj);
+            
 		}
 
 		if (DEFAULT_PARENTS_STATS)

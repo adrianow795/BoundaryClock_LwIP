@@ -137,7 +137,7 @@ void DHCP_thread(void const * argument)
           dhcp = (struct dhcp *)netif_get_client_data(netif, LWIP_NETIF_CLIENT_DATA_INDEX_DHCP);
     
           /* DHCP timeout */
-          if (dhcp->tries > MAX_DHCP_TRIES)
+          if (dhcp->tries > 1)//MAX_DHCP_TRIES)
           {
             DHCP_state = DHCP_TIMEOUT;
             

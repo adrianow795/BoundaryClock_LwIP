@@ -2292,7 +2292,7 @@ void ETH_PTP_TimeStampCmd(FunctionalState NewState)
   if (NewState != DISABLE)
   {
     /* Enable the PTP time stamp for transmit and receive frames  over IPv4*/
-    ETH->PTPTSCR |= ETH_PTPTSCR_TSE | ETH_PTPTSSR_TSSIPV4FE | ETH_PTPTSSR_TSSARFE;
+    ETH->PTPTSCR |= ETH_PTPTSCR_TSE | ETH_PTPTSSR_TSSIPV4FE | ETH_PTPTSSR_TSSARFE | ETH_PTPTSSR_TSPTPPSV2E;
   }
   else
   {

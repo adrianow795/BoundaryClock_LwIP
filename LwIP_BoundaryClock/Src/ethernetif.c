@@ -124,19 +124,25 @@ static void RMII_Thread( void const * argument );
 #if LWIP_PTP
 static void ETH_PTPStart(uint32_t UpdateMethod);
 #endif
-
+/*
+Reference Manual:
+Bits 30:0 TSUSS: Time stamp update subseconds
+The value in this field indicates the subsecond time to be initialized or added to the system
+time. This value has an accuracy of 0.46 ns (in other words, a value of 0x0000_0001 is
+0.46 ns).
+*/
 u32_t ETH_PTPSubSecond2NanoSecond(u32_t SubSecondValue)
 {
-  uint64_t val = SubSecondValue * 1000000000ll;
+  uint64_t val = SubSecondValue * 987842478LL; //1000000000LL;
   val >>=31;
   return val;
 }
 
 
-u32_t ETH_PTPNanoSecond2SubSecond(u32_t SubSecondValue)
+u32_t ETH_PTPNanoSecond2SubSecond(u32_t NanoSecondValue)
 {
-  uint64_t val = SubSecondValue * 0x80000000ll;
-  val /= 1000000000;
+  uint64_t val = ((uint64_t)NanoSecondValue) << 30; // * 0x80000000LL;
+  val /= 493921239LL; //1000000000;
   return val;
 }
 
@@ -236,6 +242,7 @@ static void low_level_init(struct netif *netif)
   EthHandle.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
   EthHandle.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
   
+  
   /* configure ethernet peripheral (GPIOs, clocks, MAC, DMA) */
   if (HAL_ETH_Init(&EthHandle) == HAL_OK)
   {
@@ -248,6 +255,12 @@ static void low_level_init(struct netif *netif)
      
   /* Initialize Rx Descriptors list: Chain Mode  */
   HAL_ETH_DMARxDescListInit(&EthHandle, DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
+  
+  #if LWIP_PTP
+  /* Enable PTP Timestamping */
+    ETH_PTPStart(ETH_PTP_FineUpdate);
+    //ETH_PTPStart(ETH_PTP_CoarseUpdate); 
+  #endif
   
   /* set netif MAC hardware address length */
   netif->hwaddr_len = ETHARP_HWADDR_LEN;
@@ -264,13 +277,7 @@ static void low_level_init(struct netif *netif)
   netif->mtu = 1500;
 
   /* Accept broadcast address and ARP traffic */
-  netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
-  
-  #if LWIP_PTP
-  /* Enable PTP Timestamping */
-  ETH_PTPStart(ETH_PTP_FineUpdate);
-  /* ETH_PTPStart(ETH_PTP_CoarseUpdate); */
-  #endif
+  netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
 
   /* create a binary semaphore used for informing ethernetif of frame reception */
   osSemaphoreDef(SEM);
@@ -377,7 +384,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   if(retVal != HAL_ERROR)
   {
       p->time_sec = EthHandle.TxDesc->TimeStampHigh;
-      p->time_nsec = ETH_PTPNanoSecond2SubSecond(EthHandle.TxDesc->TimeStampLow);
+      p->time_nsec = ETH_PTPSubSecond2NanoSecond(EthHandle.TxDesc->TimeStampLow);
   }
   
   errval = ERR_OK;
@@ -620,7 +627,10 @@ static void ETH_PTPStart(uint32_t UpdateMethod)
 {
   /* Check the parameters */
   assert_param(IS_ETH_PTP_UPDATE(UpdateMethod));
-
+  
+  /* Enable PTP clock */
+    __ETHMACPTP_CLK_ENABLE();
+    
   /* Mask the Time stamp trigger interrupt by setting bit 9 in the MACIMR register. */
     /* Disable the selected ETHERNET MAC interrupts */
     ETH->MACIMR |= ETH_MAC_IT_TST;

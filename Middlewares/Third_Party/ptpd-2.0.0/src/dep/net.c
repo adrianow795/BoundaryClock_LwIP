@@ -129,6 +129,7 @@ bool netShutdown(NetPath *netPath)
 	 Will return the IPv4 address of  the interface. */
 static int32_t findIface(const octet_t *ifaceName, octet_t *uuid, NetPath *netPath)
 {
+    /* consider usage of netif_find() <-- mandatory for more than one net interface*/
 	struct netif *iface;
 
 	iface = netif_default;
