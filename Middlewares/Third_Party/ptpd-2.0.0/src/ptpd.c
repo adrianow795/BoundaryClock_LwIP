@@ -71,7 +71,7 @@ static void ptpd_thread(void *arg)
 		while (netSelect(&ptpClock.netPath, 0) > 0);
 		
 		// Wait up to 100ms for something to do, then do something anyway.
-		sys_arch_mbox_fetch(&ptp_alert_queue, &msg, 50);
+		sys_arch_mbox_fetch(&ptp_alert_queue, &msg, 100);
 	}
 }
 
