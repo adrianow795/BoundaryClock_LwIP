@@ -308,7 +308,7 @@ void doState(PtpClock *ptpClock)
                     }
                     break;
                     
-					break;
+					
 				default:
 					toState(ptpClock, PTP_PRE_MASTER);
 					break;

@@ -55,12 +55,14 @@
 #include "httpserver-socket.h"
 #include "lcd_log.h"
 #include "ptpd.h"
+#include "usart.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 struct netif gnetif; /* network interface structure */
+
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
@@ -93,7 +95,7 @@ int main(void)
        - Global MSP (MCU Support Package) initialization
      */
   HAL_Init();
-  
+
   /* Configure the system clock to 200 MHz */
   SystemClock_Config();
   
@@ -141,7 +143,8 @@ static void StartThread(void const * argument)
   osThreadCreate (osThread(DHCP), &gnetif);
 #endif
     
-   
+   osThreadDef(GPS, GPS_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE);
+   osThreadCreate (osThread(GPS), NULL);
 
   for( ;; )
   {
