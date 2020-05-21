@@ -152,9 +152,25 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>400</LineNumber>
+          <LineNumber>3055</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134226794</Address>
+          <Address>134243666</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\..\Drivers\STM32F7xx_HAL_Driver\Src\stm32f7xx_hal_uart.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32F769I_Discovery\../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c\3055</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>271</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134245030</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -163,7 +179,55 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\Src\usart.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\STM32F769I_Discovery\../Src/usart.c\400</Expression>
+          <Expression>\\STM32F769I_Discovery\../Src/usart.c\271</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>251</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134239742</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\Src\usart.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32F769I_Discovery\../Src/usart.c\251</Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>168</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134244932</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>../Src/stm32f7xx_it.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32F769I_Discovery\../Src/stm32f7xx_it.c\168</Expression>
+        </Bp>
+        <Bp>
+          <Number>4</Number>
+          <Type>0</Type>
+          <LineNumber>178</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134244986</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>../Src/stm32f7xx_it.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\STM32F769I_Discovery\../Src/stm32f7xx_it.c\178</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

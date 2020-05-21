@@ -27,12 +27,15 @@
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart6;
+extern DMA_HandleTypeDef hdma_usart6_rx;
 
 /* USER CODE BEGIN Private defines */
+#define RX_BUF_SLICE_SIZE       ((uint16_t)(16))
+#define RX_BUF_SIZE             ((uint16_t)(400))
 
 /* USER CODE END Private defines */
 
@@ -40,6 +43,9 @@ void MX_USART6_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void GPS_thread(void const * argument);
+void USART6_ISR_IdleLine_Callback(UART_HandleTypeDef *UartHandle ,uint16_t bytes_left);
+
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
