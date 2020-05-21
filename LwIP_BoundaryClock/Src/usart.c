@@ -21,21 +21,20 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
+#include "cmsis_os.h"
 #include "dma.h"
 #include <time.h>
 #include "ptpd.h"
+
+#define RX_BUF_SLICE_SIZE       ((uint16_t)(100))
+#define RX_BUF_SIZE             ((uint16_t)(400))
+
 
 typedef struct 
 {
     uint16_t start_idx;
     uint16_t data_length;
 }Uart_Rx_Control_t;
-
-typedef struct 
-{
-    uint16_t stop_idx;
-    uint16_t data_length;
-}Uart_Rx_IdleLine_t;
 
 typedef enum {
     RX_GPS_W8_SOF,
@@ -60,15 +59,10 @@ typedef enum {
 
 /* Variables */
 static osMessageQDef(usart6_m_q, 8, Uart_Rx_Control_t*); // Declare a message queue
-osMessageQId (usart6_m_q_id);           // Declare an ID for the message queue
-
-static osMessageQDef(usart6_IL_m_q, 4, Uart_Rx_IdleLine_t*); // Declare a message queue
-osMessageQId (usart6_IL_m_q_id);           // Declare an ID for the message queue
+static osMessageQId (usart6_m_q_id);           // Declare an ID for the message queue
 
 volatile static uint8_t uart_rx_buf[RX_BUF_SIZE];
-volatile static Uart_Rx_Control_t uart_dma_isr_rx_stat;
 volatile static Uart_Rx_Control_t uart_isr_rx_stat;
-volatile static Uart_Rx_IdleLine_t uart_isr_rx_il_stat;
 
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart6_rx;
@@ -142,14 +136,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart6_rx);
 
     /* USART6 interrupt Init */
-    // RTOR
-
-    // USART_CR1 -> RTOIE
-    SET_BIT(uartHandle->Instance->CR1, USART_CR1_IDLEIE);
-    /*
-    SET_BIT(uartHandle->Instance->RTOR, 100u);
-    SET_BIT(uartHandle->Instance->CR1, USART_CR1_RTOIE);
-    */
     HAL_NVIC_SetPriority(USART6_IRQn, 0xF, 0);
     HAL_NVIC_EnableIRQ(USART6_IRQn);
   /* USER CODE BEGIN USART6_MspInit 1 */
@@ -202,17 +188,24 @@ void GPS_thread(void const * argument)
     osEvent event;
     uint16_t end_idx = 0;
     usart6_m_q_id = osMessageCreate(osMessageQ(usart6_m_q), NULL);
-    usart6_IL_m_q_id = osMessageCreate(osMessageQ(usart6_IL_m_q), NULL);
-    /*init */
     time[10] = NULL;
     date[6] = NULL;
     
     MX_DMA_Init();
     MX_USART6_UART_Init();
 
-    /* Reception start */
-    HAL_UART_Receive_DMA(&huart6, (uint8_t*)(&uart_rx_buf[0]), RX_BUF_SLICE_SIZE);
-    //UART_DMAError
+
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK225,0*2B\r\n", sizeof("$PMTK225,0*2B\r\n")-1,100); //normal mode
+    //osDelay(50);
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK220,3000*1D\r\n", sizeof("$PMTK220,3000*1D\r\n")-1,100); //3s
+    //osDelay(50);
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK255,1*2D\r\n", sizeof("$PMTK255,1*2D\r\n")-1,100); // pps on
+    //osDelay(50);
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK285,4,100*38\r\n", sizeof("$PMTK285,4,100*38\r\n")-1,100); // pps 100ms pulse width
+    //osDelay(50);
+    
+    HAL_UART_Receive_DMA(&huart6, &uart_rx_buf[0], RX_BUF_SLICE_SIZE);
+     
      while(1)
     {
         event = osMessageGet(usart6_m_q_id, osWaitForever);
@@ -220,11 +213,11 @@ void GPS_thread(void const * argument)
         {
             uart_rx_stats = (Uart_Rx_Control_t*)event.value.p;
             end_idx = uart_rx_stats->start_idx + RX_BUF_SLICE_SIZE;
-            if(end_idx > RX_BUF_SIZE - RX_BUF_SLICE_SIZE)
+            if(end_idx > 300)
             {
                 end_idx = 0;
             }
-            HAL_UART_Receive_DMA(&huart6, (uint8_t*)(&uart_rx_buf[end_idx]), RX_BUF_SLICE_SIZE);
+            HAL_UART_Receive_DMA(&huart6,  &uart_rx_buf[end_idx], RX_BUF_SLICE_SIZE);
            
             end_idx = uart_rx_stats->start_idx + uart_rx_stats->data_length;
             for (uint16_t i = uart_rx_stats->start_idx; i <  end_idx; i++)
@@ -247,33 +240,9 @@ void GPS_thread(void const * argument)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
     uint32_t addr = (uint32_t)uart_rx_buf;
-    osEvent event = osMessageGet(usart6_IL_m_q_id,0);
-    if (event.status == osEventMessage)
-    {
-        Uart_Rx_IdleLine_t* uart_il = (Uart_Rx_IdleLine_t*)event.value.p;
-        uart_dma_isr_rx_stat.data_length = RX_BUF_SLICE_SIZE - UartHandle->hdmarx->Instance->NDTR - uart_il->data_length;
-        uart_dma_isr_rx_stat.start_idx = ((uint16_t)(UartHandle->hdmarx->Instance->M0AR - addr)) + uart_il->stop_idx;
-    }
-    else
-    {
-        uart_dma_isr_rx_stat.data_length = RX_BUF_SLICE_SIZE - UartHandle->hdmarx->Instance->NDTR;
-        uart_dma_isr_rx_stat.start_idx = (uint16_t)(UartHandle->hdmarx->Instance->M0AR - addr);
-    }
-    osMessagePut(usart6_m_q_id,(uint32_t)&uart_dma_isr_rx_stat,0);
-}
-
-
-void USART6_ISR_IdleLine_Callback(UART_HandleTypeDef *UartHandle, uint16_t bytes_left)
-{
-    uint32_t addr = (uint32_t)uart_rx_buf;
-    uart_isr_rx_il_stat.data_length = uart_isr_rx_stat.data_length = RX_BUF_SLICE_SIZE - bytes_left;
-    /* M0AR - this register informs about DMA memory address */
+    uart_isr_rx_stat.data_length = RX_BUF_SLICE_SIZE - UartHandle->hdmarx->Instance->NDTR;
     uart_isr_rx_stat.start_idx = (uint16_t)(UartHandle->hdmarx->Instance->M0AR - addr);
     osMessagePut(usart6_m_q_id,(uint32_t)&uart_isr_rx_stat,0);
-    
-    uart_isr_rx_il_stat.stop_idx = uart_isr_rx_stat.start_idx + uart_isr_rx_il_stat.data_length;
-    osMessagePut(usart6_IL_m_q_id,(uint32_t)&uart_isr_rx_il_stat,0);
-    
 }
 
    

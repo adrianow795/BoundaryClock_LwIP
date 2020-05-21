@@ -29,12 +29,15 @@
 #include "stm32f7xx_it.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include "usart.h"
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern ETH_HandleTypeDef EthHandle;
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern UART_HandleTypeDef huart6;
+//extern osMessageQId (usart6_m_q_id); 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -156,39 +159,45 @@ void DMA2_Stream1_IRQHandler(void)
   /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
-
 /**
   * @brief This function handles USART6 global interrupt.
   */
 void USART6_IRQHandler(void)
 {
-    uint16_t bytes_left = 0;
-    if(READ_BIT(huart6.Instance->ISR, USART_ISR_IDLE))
-    {
-        SET_BIT(huart6.Instance->ICR, USART_ICR_IDLECF);
-        bytes_left = huart6.hdmarx->Instance->NDTR;
-        
-        if((bytes_left < RX_BUF_SLICE_SIZE) && (bytes_left > 0))
-        {
-            USART6_ISR_IdleLine_Callback(&huart6, bytes_left);
-        }
-    }
-    if(READ_BIT(huart6.Instance->ISR, USART_ISR_ORE))
-    {
-        SET_BIT(huart6.Instance->ICR, USART_ICR_ORECF);
-    }
-
-    
+  /* USER CODE BEGIN USART6_IRQn 0 */
+    uint8_t c = 0;
+  /* USER CODE END USART6_IRQn 0 */
+  HAL_UART_IRQHandler(&huart6);
+  /* USER CODE BEGIN USART6_IRQn 1 */
     /*
-    if(READ_BIT(huart6.Instance->ISR, USART_ISR_RTOF))
+    uint32_t errorflags;
+    uint32_t isrflags   = READ_REG(huart6.Instance->ISR);
+    uint32_t cr1its     = READ_REG(huart6.Instance->CR1);
+    uint32_t cr3its     = READ_REG(huart6.Instance->CR3);
+    errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
+    if ( (isrflags & USART_ISR_CMF) != 0)
     {
-        SET_BIT(huart6.Instance->ICR, USART_ICR_RTOCF);
-        byte_left = huart6.hdmarx->Instance->NDTR;
-        if(byte_left)
+        if ((isrflags & USART_ISR_RXNE) != 0U)
         {
-            byte_left++;
+            c = huart6.Instance->RDR;
+            SET_BIT(huart6.Instance->ICR, USART_ICR_CMCF);
         }
-    }*/
+      
+    }
+    else if (((isrflags & USART_ISR_RXNE) != 0U)&& ((cr1its & USART_CR1_RXNEIE) != 0U))
+    {
+        c = huart6.Instance->RDR;
+    }
+    */
+    //uint32_t isrflags   = READ_REG(huart6.Instance->ISR);
+    //uint32_t cr1its     = READ_REG(huart6.Instance->CR1);
+    //if ((huart6.Instance->CR1 & USART_CR1_RXNEIE) != 0U)
+    {
+        c = huart6.Instance->RDR;
+      //  osMessagePut(usart6_m_q_id, c, 0);
+    }
+    
+  /* USER CODE END USART6_IRQn 1 */
 }
 
 /**
