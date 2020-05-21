@@ -26,7 +26,7 @@
 #include <time.h>
 #include "ptpd.h"
 
-#define RX_BUF_SLICE_SIZE       ((uint16_t)(100))
+#define RX_BUF_SLICE_SIZE       ((uint16_t)(16))
 #define RX_BUF_SIZE             ((uint16_t)(400))
 
 
@@ -182,11 +182,11 @@ void GPS_thread(void const * argument)
 {
     Uart_Rx_Control_t* uart_rx_stats;
     static uint8_t time[11], date[7];
-    uint8_t aaa[40];
     Rx_GPS_SM_t state = RX_GPS_W8_SOF;
     TimeInternal time_stamp;
     osEvent event;
     uint16_t end_idx = 0;
+    
     usart6_m_q_id = osMessageCreate(osMessageQ(usart6_m_q), NULL);
     time[10] = NULL;
     date[6] = NULL;
@@ -204,7 +204,7 @@ void GPS_thread(void const * argument)
     HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK285,4,100*38\r\n", sizeof("$PMTK285,4,100*38\r\n")-1,100); // pps 100ms pulse width
     //osDelay(50);
     
-    HAL_UART_Receive_DMA(&huart6, &uart_rx_buf[0], RX_BUF_SLICE_SIZE);
+    HAL_UART_Receive_DMA(&huart6, (uint8_t *)&uart_rx_buf[0], RX_BUF_SLICE_SIZE);
      
      while(1)
     {
@@ -213,11 +213,11 @@ void GPS_thread(void const * argument)
         {
             uart_rx_stats = (Uart_Rx_Control_t*)event.value.p;
             end_idx = uart_rx_stats->start_idx + RX_BUF_SLICE_SIZE;
-            if(end_idx > 300)
+            if(end_idx > RX_BUF_SIZE - RX_BUF_SLICE_SIZE)
             {
                 end_idx = 0;
             }
-            HAL_UART_Receive_DMA(&huart6,  &uart_rx_buf[end_idx], RX_BUF_SLICE_SIZE);
+            HAL_UART_Receive_DMA(&huart6, (uint8_t *)&uart_rx_buf[end_idx], RX_BUF_SLICE_SIZE);
            
             end_idx = uart_rx_stats->start_idx + uart_rx_stats->data_length;
             for (uint16_t i = uart_rx_stats->start_idx; i <  end_idx; i++)

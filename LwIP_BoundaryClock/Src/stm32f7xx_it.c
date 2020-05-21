@@ -142,21 +142,13 @@ void ETH_IRQHandler(void)
   HAL_ETH_IRQHandler(&EthHandle);
 }
 
-/**
-  * @brief This function handles DMA2 stream6 global interrupt.
-  */
+
 /**
   * @brief This function handles DMA2 stream1 global interrupt.
   */
 void DMA2_Stream1_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
-
-  /* USER CODE END DMA2_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart6_rx);
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
 /**
@@ -164,40 +156,10 @@ void DMA2_Stream1_IRQHandler(void)
   */
 void USART6_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART6_IRQn 0 */
-    uint8_t c = 0;
-  /* USER CODE END USART6_IRQn 0 */
-  HAL_UART_IRQHandler(&huart6);
-  /* USER CODE BEGIN USART6_IRQn 1 */
-    /*
-    uint32_t errorflags;
-    uint32_t isrflags   = READ_REG(huart6.Instance->ISR);
-    uint32_t cr1its     = READ_REG(huart6.Instance->CR1);
-    uint32_t cr3its     = READ_REG(huart6.Instance->CR3);
-    errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
-    if ( (isrflags & USART_ISR_CMF) != 0)
+    if(READ_BIT(huart6.Instance->ISR, USART_ISR_ORE))
     {
-        if ((isrflags & USART_ISR_RXNE) != 0U)
-        {
-            c = huart6.Instance->RDR;
-            SET_BIT(huart6.Instance->ICR, USART_ICR_CMCF);
-        }
-      
+        SET_BIT(huart6.Instance->ICR, USART_ICR_ORECF);
     }
-    else if (((isrflags & USART_ISR_RXNE) != 0U)&& ((cr1its & USART_CR1_RXNEIE) != 0U))
-    {
-        c = huart6.Instance->RDR;
-    }
-    */
-    //uint32_t isrflags   = READ_REG(huart6.Instance->ISR);
-    //uint32_t cr1its     = READ_REG(huart6.Instance->CR1);
-    //if ((huart6.Instance->CR1 & USART_CR1_RXNEIE) != 0U)
-    {
-        c = huart6.Instance->RDR;
-      //  osMessagePut(usart6_m_q_id, c, 0);
-    }
-    
-  /* USER CODE END USART6_IRQn 1 */
 }
 
 /**
