@@ -91,6 +91,6 @@ void ptpd_init(void)
   }
 
 	// Create the PTP daemon thread.
-	sys_thread_new("PTPD", ptpd_thread, NULL, DEFAULT_THREAD_STACKSIZE * 2,osPriorityRealtime);// osPriorityAboveNormal);
+	sys_thread_new("PTPD", ptpd_thread, NULL, DEFAULT_THREAD_STACKSIZE * 2,osPriorityHigh);// osPriorityAboveNormal);
 }
 

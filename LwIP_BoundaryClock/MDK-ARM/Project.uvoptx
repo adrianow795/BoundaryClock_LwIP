@@ -125,7 +125,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGTARM</Key>
-          <Name>(1010=868,111,1318,667,0)(6017=105,136,294,471,0)(1008=90,120,466,355,0)(6016=-1,-1,-1,-1,0)(1012=-1,-1,-1,-1,0)</Name>
+          <Name>(1010=790,139,1240,695,0)(6017=105,136,294,471,0)(1008=90,120,466,355,0)(6016=-1,-1,-1,-1,0)(1012=-1,-1,-1,-1,0)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -152,92 +152,57 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>217</LineNumber>
+          <LineNumber>400</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134343164</Address>
+          <Address>134226794</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\..\Middlewares\Third_Party\ptpd-2.0.0\src\dep\servo.c</Filename>
+          <Filename>..\Src\usart.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\STM32F769I_Discovery\../../Middlewares/Third_Party/ptpd-2.0.0/src/dep/servo.c\217</Expression>
+          <Expression>\\STM32F769I_Discovery\../Src/usart.c\400</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ptpClock,0x0A</ItemText>
+          <ItemText>uart_isr_rx_stat</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>netif_default</ItemText>
+          <ItemText>configMAX_SYSCALL_INTERRUPT_PRIORITY</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>netif_list</ItemText>
+          <ItemText>uart_rx_buf</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>EthHandle</ItemText>
+          <ItemText>i,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>type</ItemText>
+          <ItemText>uart_rx_buf[i]</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>ptpdTimersExpired[index]</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>ptpdTimersExpired[index]</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>ptpdTimersExpired</ItemText>
-        </Ww>
-        <Ww>
-          <count>8</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>SystemCoreClock,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>9</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Tsm_temp_</ItemText>
-        </Ww>
-        <Ww>
-          <count>10</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>meanPathDelay_temp_</ItemText>
-        </Ww>
-        <Ww>
-          <count>11</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Tms_temp_</ItemText>
-        </Ww>
-        <Ww>
-          <count>12</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>huart6</ItemText>
+          <ItemText>time</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>arg</ItemText>
+          <ItemText>uart_rx_buf</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -285,12 +250,20 @@
       <pMultCmdsp></pMultCmdsp>
       <SystemViewers>
         <Entry>
+          <Name>System Viewer\DMA2</Name>
+          <WinId>35899</WinId>
+        </Entry>
+        <Entry>
           <Name>System Viewer\Ethernet_MAC</Name>
           <WinId>35904</WinId>
         </Entry>
         <Entry>
           <Name>System Viewer\Ethernet_PTP</Name>
           <WinId>35905</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\GPIOC</Name>
+          <WinId>35900</WinId>
         </Entry>
         <Entry>
           <Name>System Viewer\NVIC</Name>
@@ -765,7 +738,7 @@
 
   <Group>
     <GroupName>Middlewares/FreeRTOS/portable</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -809,7 +782,7 @@
 
   <Group>
     <GroupName>Application/Utilities</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

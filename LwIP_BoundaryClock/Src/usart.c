@@ -26,22 +26,58 @@
 #include <time.h>
 #include "ptpd.h"
 
-osMessageQDef(usart6_m_q, 400, uint8_t); // Declare a message queue
-osMessageQId (usart6_m_q_id);           // Declare an ID for the message queue
+#define RX_BUF_SLICE_SIZE       ((uint16_t)(100))
+#define RX_BUF_SIZE             ((uint16_t)(400))
 
-void USART6_Rx_ISR(struct __UART_HandleTypeDef *huart);
-/* USER CODE END 0 */
+
+typedef struct 
+{
+    uint16_t start_idx;
+    uint16_t data_length;
+}Uart_Rx_Control_t;
+
+typedef enum {
+    RX_GPS_W8_SOF,
+    RX_GPS_GNRMC,
+    RX_GPS_TIME, /* hhmmss.sss */
+    RX_GPS_VALID,
+    RX_GPS_LAT,
+    RX_GPS_NS,
+    RX_GPS_LON,
+    RX_GPS_EW,
+    RX_GPS_SPEED,
+    RX_GPS_COG,
+    RX_GPS_DATE, /* ddmmyy */
+    RX_GPS_MAG_VAR,
+    RX_GPS_MAG_EW,
+    RX_GPS_POS_MODE,
+    RX_GPS_EOF,
+    RX_GPS_CRC,
+    RX_GPS_CR,
+    RX_GPS_LF
+} Rx_GPS_SM_t;
+
+/* Variables */
+static osMessageQDef(usart6_m_q, 8, Uart_Rx_Control_t*); // Declare a message queue
+static osMessageQId (usart6_m_q_id);           // Declare an ID for the message queue
+
+volatile static uint8_t uart_rx_buf[RX_BUF_SIZE];
+volatile static Uart_Rx_Control_t uart_isr_rx_stat;
 
 UART_HandleTypeDef huart6;
-DMA_HandleTypeDef hdma_usart6_tx;
+DMA_HandleTypeDef hdma_usart6_rx;
 
-/* USART6 init function */
+/* Function prototypes */
+static Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c);
+static void GPS_CalculateTime( uint8_t* time_c, uint8_t* date_c, TimeInternal* time_stamp);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle);
 
+/* USER CODE END 0 */
 void MX_USART6_UART_Init(void)
 {
-    uint32_t temp = 0;
+
   huart6.Instance = USART6;
-  huart6.Init.BaudRate = 9600;
+  huart6.Init.BaudRate = 115200;
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
   huart6.Init.StopBits = UART_STOPBITS_1;
   huart6.Init.Parity = UART_PARITY_NONE;
@@ -52,18 +88,10 @@ void MX_USART6_UART_Init(void)
   huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart6) != HAL_OK)
   {
-    //Error_Handler();
+   // Error_Handler();
   }
-  CLEAR_BIT(huart6.Instance->CR1, (USART_CR1_RE | USART_CR1_UE));
-  SET_BIT(huart6.Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_CMIE));
-  temp = ((uint32_t)('*')) << 24;
-  SET_BIT(huart6.Instance->CR2, (temp | USART_CR2_ADDM7));
-  //SET_BIT(huart6.Instance->CR3, USART_CR3_OVRDIS);
-  SET_BIT(huart6.Instance->CR1, (USART_CR1_RE | USART_CR1_UE));
-  
 
 }
-
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 {
 
@@ -89,32 +117,33 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     /* USART6 DMA Init */
-    /* USART6_TX Init */
-    hdma_usart6_tx.Instance = DMA2_Stream6;
-    hdma_usart6_tx.Init.Channel = DMA_CHANNEL_5;
-    hdma_usart6_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_usart6_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart6_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart6_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart6_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart6_tx.Init.Mode = DMA_NORMAL;
-    hdma_usart6_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_usart6_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_usart6_tx) != HAL_OK)
+    /* USART6_RX Init */
+    hdma_usart6_rx.Instance = DMA2_Stream1;
+    hdma_usart6_rx.Init.Channel = DMA_CHANNEL_5;
+    hdma_usart6_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart6_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart6_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart6_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart6_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart6_rx.Init.Mode = DMA_NORMAL;
+    hdma_usart6_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_usart6_rx) != HAL_OK)
     {
       //Error_Handler();
     }
 
-    //__HAL_LINKDMA(uartHandle,hdmatx,hdma_usart6_tx);
+    __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart6_rx);
 
     /* USART6 interrupt Init */
-    HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USART6_IRQn, 0xF, 0);
     HAL_NVIC_EnableIRQ(USART6_IRQn);
   /* USER CODE BEGIN USART6_MspInit 1 */
 
   /* USER CODE END USART6_MspInit 1 */
   }
 }
+
 
 void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 {
@@ -146,41 +175,90 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
-typedef enum {
-    RX_GPS_W8_SOF,
-    RX_GPS_SOF,
-    RX_GPS_GNRMC,
-    RX_GPS_TIME, /* hhmmss.sss */
-    RX_GPS_VALID,
-    RX_GPS_LAT,
-    RX_GPS_NS,
-    RX_GPS_LON,
-    RX_GPS_EW,
-    RX_GPS_SPEED,
-    RX_GPS_COG,
-    RX_GPS_DATE, /* ddmmyy */
-    RX_GPS_MAG_VAR,
-    RX_GPS_MAG_EW,
-    RX_GPS_POS_MODE,
-    RX_GPS_EOF,
-    RX_GPS_CRC,
-    RX_GPS_CR,
-    RX_GPS_LF
-} Rx_GPS_SM_t;
+
+ 
+
+void GPS_thread(void const * argument)
+{
+    Uart_Rx_Control_t* uart_rx_stats;
+    static uint8_t time[11], date[7];
+    uint8_t aaa[40];
+    Rx_GPS_SM_t state = RX_GPS_W8_SOF;
+    TimeInternal time_stamp;
+    osEvent event;
+    uint16_t end_idx = 0;
+    usart6_m_q_id = osMessageCreate(osMessageQ(usart6_m_q), NULL);
+    time[10] = NULL;
+    date[6] = NULL;
     
-Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
+    MX_DMA_Init();
+    MX_USART6_UART_Init();
+
+
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK225,0*2B\r\n", sizeof("$PMTK225,0*2B\r\n")-1,100); //normal mode
+    //osDelay(50);
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK220,3000*1D\r\n", sizeof("$PMTK220,3000*1D\r\n")-1,100); //3s
+    //osDelay(50);
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK255,1*2D\r\n", sizeof("$PMTK255,1*2D\r\n")-1,100); // pps on
+    //osDelay(50);
+    HAL_UART_Transmit(&huart6,(uint8_t*)"$PMTK285,4,100*38\r\n", sizeof("$PMTK285,4,100*38\r\n")-1,100); // pps 100ms pulse width
+    //osDelay(50);
+    
+    HAL_UART_Receive_DMA(&huart6, &uart_rx_buf[0], RX_BUF_SLICE_SIZE);
+     
+     while(1)
+    {
+        event = osMessageGet(usart6_m_q_id, osWaitForever);
+        if (event.status == osEventMessage)
+        {
+            uart_rx_stats = (Uart_Rx_Control_t*)event.value.p;
+            end_idx = uart_rx_stats->start_idx + RX_BUF_SLICE_SIZE;
+            if(end_idx > 300)
+            {
+                end_idx = 0;
+            }
+            HAL_UART_Receive_DMA(&huart6,  &uart_rx_buf[end_idx], RX_BUF_SLICE_SIZE);
+           
+            end_idx = uart_rx_stats->start_idx + uart_rx_stats->data_length;
+            for (uint16_t i = uart_rx_stats->start_idx; i <  end_idx; i++)
+            {
+                state = GPS_SM(time, date, uart_rx_buf[i]);
+                uart_rx_buf[i] = 0xffu;
+                if(state == RX_GPS_LF)
+                {
+                    printf(":time: %s\n",time);
+                    printf(":date: %s\n",date);
+                    GPS_CalculateTime(time, date, &time_stamp);
+                    printf(":timestamp: %d.%d\n\n",time_stamp.seconds,time_stamp.nanoseconds);
+                }
+            }
+        }
+    }
+    
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+    uint32_t addr = (uint32_t)uart_rx_buf;
+    uart_isr_rx_stat.data_length = RX_BUF_SLICE_SIZE - UartHandle->hdmarx->Instance->NDTR;
+    uart_isr_rx_stat.start_idx = (uint16_t)(UartHandle->hdmarx->Instance->M0AR - addr);
+    osMessagePut(usart6_m_q_id,(uint32_t)&uart_isr_rx_stat,0);
+}
+
+   
+static Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
 {
     static Rx_GPS_SM_t sm_state = RX_GPS_W8_SOF;
     static uint8_t msg[100]= {0};
     static uint8_t c_ctr = 0, t_ctr = 0, d_ctr = 0;
-    
+    msg[c_ctr] = c;
     switch (sm_state)
     {
         case RX_GPS_W8_SOF:
             if(msg[c_ctr] == '$')
             {
                 c_ctr++;
-                sm_state = RX_GPS_SOF;
+                sm_state = RX_GPS_GNRMC;
             }
             break;
             
@@ -190,13 +268,14 @@ Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
                 msg[3] == 'R' &&
                 msg[4] == 'M' &&
                 msg[5] == 'C' &&
-                c_ctr  == 5
+                msg[6] == ',' &&
+                c_ctr  == 6
                 )
             {
                 c_ctr++;
                 sm_state = RX_GPS_TIME;
             }
-            else if (c_ctr < 5)
+            else if (c_ctr < 6)
             {
                 c_ctr++;
                 sm_state = RX_GPS_GNRMC;
@@ -205,6 +284,7 @@ Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
             {
                 c_ctr = 0;
                 sm_state = RX_GPS_W8_SOF;
+                memset(msg,0,6);
             }
             break;
             
@@ -213,6 +293,7 @@ Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
             if(msg[c_ctr] == ',' || t_ctr == 10)
             {
                 sm_state = RX_GPS_VALID;
+                t_ctr = 0;
             }
             else
             {
@@ -231,16 +312,17 @@ Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
         case RX_GPS_SPEED:
         case RX_GPS_COG:
             if(msg[c_ctr] == ',')
-            {
-                c_ctr++;
+            {               
                 sm_state++;
             }
+            c_ctr++;
             break;
 
         case RX_GPS_DATE:
             if(msg[c_ctr] == ',' || d_ctr == 6)
             {
                 sm_state = RX_GPS_MAG_VAR;
+                d_ctr = 0;
             }
             else
             {
@@ -250,18 +332,14 @@ Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
             }
             c_ctr++;
             break;
-
+            
         case RX_GPS_MAG_VAR:
         case RX_GPS_MAG_EW:
         case RX_GPS_POS_MODE:
         case RX_GPS_EOF:
-            if(msg[c_ctr] == ',')
-            {                      
-                sm_state++;
-            }
-            else if (msg[c_ctr] == '*')
+            if (msg[c_ctr] == '*')
             {
-                sm_state = RX_GPS_CRC;
+                sm_state = RX_GPS_LF;
             }
             c_ctr++;
             break;
@@ -270,16 +348,18 @@ Rx_GPS_SM_t GPS_SM(uint8_t* time, uint8_t* date, uint8_t c)
         case RX_GPS_CR:
         case RX_GPS_LF:
             c_ctr = 0;
+            memset(msg,0,10);
             sm_state = RX_GPS_W8_SOF;
             break;
         
         default:
+            sm_state = RX_GPS_W8_SOF;
             break;
     }
     return sm_state;
 }
 
-void GPS_CalculateTime( uint8_t* time_c, uint8_t* date_c, TimeInternal* time_stamp)
+static void GPS_CalculateTime( uint8_t* time_c, uint8_t* date_c, TimeInternal* time_stamp)
 {
     struct tm t;
     time_t t_of_day;
@@ -309,59 +389,11 @@ void GPS_CalculateTime( uint8_t* time_c, uint8_t* date_c, TimeInternal* time_sta
     
     
     ns = (time_c[7] - '0') * 100000000U;
-    ns += (time_c[7] - '0') * 10000000U;
-    ns += (time_c[7] - '0') * 1000000U;
+    ns += (time_c[8] - '0') * 10000000U;
+    ns += (time_c[9] - '0') * 1000000U;
     
     time_stamp->seconds = (int32_t) t_of_day;
     time_stamp->nanoseconds = (int32_t) ns;
-}
-
-void GPS_thread(void const * argument)
-{
-    
-    static uint8_t time [10], date[6];
-    uint8_t aaa[40];
-    Rx_GPS_SM_t state = RX_GPS_W8_SOF;
-    TimeInternal time_stamp;
-    osEvent event;
-    
-    usart6_m_q_id = osMessageCreate(osMessageQ(usart6_m_q), NULL);
-    //MX_DMA_Init();
-    
-    MX_USART6_UART_Init();
-    huart6.RxISR = USART6_Rx_ISR;
-    while(1)
-    {
-       // HAL_UART_Receive_IT(&huart6,aaa,40);
-        event = osMessageGet(usart6_m_q_id, osWaitForever);
-        if (event.status == osEventMessage)
-        {
-            state = GPS_SM(time, date, *((uint8_t*)(event.value.p)));
-            if(state == RX_GPS_LF)
-            {
-                GPS_CalculateTime(time, date, &time_stamp);
-            }
-        }
-    }
-    
-}
-
-
-void USART6_Rx_ISR(struct __UART_HandleTypeDef *huart)
-{
-
-   
-}
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    uint8_t c = 0;
-    
-    HAL_StatusTypeDef uart_status = HAL_ERROR;
-    uart_status = HAL_UART_Receive_IT(huart, &c, 1);
-    if (HAL_OK == uart_status )
-    {
-       osMessagePut(usart6_m_q_id, c, 0);
-    }
 }
 
 /* USER CODE END 1 */

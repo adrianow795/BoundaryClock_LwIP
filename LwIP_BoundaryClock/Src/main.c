@@ -290,6 +290,10 @@ static void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
 }
 
 /**
