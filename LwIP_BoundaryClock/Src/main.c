@@ -143,7 +143,7 @@ static void StartThread(void const * argument)
   osThreadCreate (osThread(DHCP), &gnetif);
 #endif
     
-   osThreadDef(GPS, GPS_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE);
+   osThreadDef(GPS, GPS_thread, osPriorityBelowNormal, 0, configMINIMAL_STACK_SIZE * 2);
    osThreadCreate (osThread(GPS), NULL);
 
   for( ;; )

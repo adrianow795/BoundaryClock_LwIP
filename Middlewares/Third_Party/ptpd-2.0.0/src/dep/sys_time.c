@@ -69,7 +69,7 @@ void displayStats(const PtpClock *ptpClock)
 
 void getTime(TimeInternal *time)
 {
-	struct ptptime_t timestamp;
+	ptptime_t timestamp;
 	ETH_PTPTime_GetTime(&timestamp);
 	time->seconds = timestamp.tv_sec;
 	time->nanoseconds = timestamp.tv_nsec;
@@ -77,7 +77,7 @@ void getTime(TimeInternal *time)
 
 void setTime(const TimeInternal *time)
 {
-	struct ptptime_t ts;
+	ptptime_t ts;
 
 	ts.tv_sec = time->seconds;
 	ts.tv_nsec = time->nanoseconds;
@@ -87,7 +87,7 @@ void setTime(const TimeInternal *time)
 
 void updateTime(const TimeInternal *time)
 {
-	struct ptptime_t timeoffset;
+	ptptime_t timeoffset;
 
 	DBGV("updateTime: %d sec %d nsec\n", time->seconds, time->nanoseconds);
 

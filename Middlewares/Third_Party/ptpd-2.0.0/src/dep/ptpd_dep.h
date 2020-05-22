@@ -3,6 +3,11 @@
 
 /** \name Debug messages */
 /**\{*/
+
+
+#pragma __printf_args
+extern int print_nothing(const char *format, ...);
+
 #ifdef PTPD_DBGVV
 #define PTPD_DBGV
 #define PTPD_DBG
@@ -15,7 +20,7 @@
 #ifdef PTPD_DBGV
 #define PTPD_DBG
 #define PTPD_ERR
-#define DBGV(...)  { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); }
+#define DBGV(...) {print_nothing(__VA_ARGS__);} /* { TimeInternal tmpTime; getTime(&tmpTime); printf("(d %d.%09d) ", tmpTime.seconds, tmpTime.nanoseconds); printf(__VA_ARGS__); } */
 #else
 #define DBGV(...)
 #endif

@@ -47,6 +47,12 @@ static char *stateString(uint8_t state)
 }
 #endif
 
+#pragma __printf_args
+int print_nothing(const char *format, ...)
+{
+    return 0;
+}
+
 /* Perform actions required when leaving 'port_state' and entering 'state' */
 void toState(PtpClock *ptpClock, uint8_t state)
 {

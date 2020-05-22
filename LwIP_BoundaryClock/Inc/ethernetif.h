@@ -14,15 +14,15 @@ err_t ethernetif_init(struct netif *netif);
 *$#>Added compilation purpose *
 **********************************************/
 
-struct ptptime_t {
+typedef struct sptptime {
   int32_t tv_sec;
   int32_t tv_nsec;
-};
+}ptptime_t;
 
 #if LWIP_PTP
-void ETH_PTPTime_SetTime(struct ptptime_t * timestamp);
-void ETH_PTPTime_GetTime(struct ptptime_t * timestamp);
-void ETH_PTPTime_UpdateOffset(struct ptptime_t * timeoffset);
+void ETH_PTPTime_SetTime(ptptime_t * timestamp);
+void ETH_PTPTime_GetTime(ptptime_t * timestamp);
+void ETH_PTPTime_UpdateOffset(ptptime_t * timeoffset);
 void ETH_PTPTime_AdjFreq(int32_t Adj);
 
 /* Examples of subsecond increment and addend values using SysClk = 144 MHz

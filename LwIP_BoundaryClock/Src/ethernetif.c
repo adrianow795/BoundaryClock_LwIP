@@ -147,7 +147,7 @@ u32_t ETH_PTPNanoSecond2SubSecond(u32_t NanoSecondValue)
 }
 
 
-void ETH_PTPTime_GetTime(struct ptptime_t * timestamp)
+void ETH_PTPTime_GetTime(ptptime_t * timestamp)
 {
   timestamp->tv_nsec = ETH_PTPSubSecond2NanoSecond(ETH_PTP_GetPTPRegister(ETH_PTPTSLR));
   timestamp->tv_sec = ETH_PTP_GetPTPRegister(ETH_PTPTSHR);
@@ -710,7 +710,7 @@ void ETH_PTPTime_AdjFreq(int32_t Adj)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void ETH_PTPTime_UpdateOffset(struct ptptime_t * timeoffset)
+void ETH_PTPTime_UpdateOffset(ptptime_t * timeoffset)
 {
 	uint32_t Sign;
 	uint32_t SecondValue;
@@ -763,7 +763,7 @@ void ETH_PTPTime_UpdateOffset(struct ptptime_t * timeoffset)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void ETH_PTPTime_SetTime(struct ptptime_t * timestamp)
+void ETH_PTPTime_SetTime(ptptime_t * timestamp)
 {
 	uint32_t Sign;
 	uint32_t SecondValue;
